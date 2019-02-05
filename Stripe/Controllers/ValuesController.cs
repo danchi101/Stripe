@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Stripe.Stripe;
 
 namespace Stripe.Controllers
 {
@@ -10,37 +12,13 @@ namespace Stripe.Controllers
     [ApiController]
     public class ValuesController : ControllerBase
     {
-        //// GET api/values
-        //[HttpGet]
-        //public ActionResult<IEnumerable<string>> Get()
-        //{
-        //    return new string[] { "value1", "value2" };
-        //}
+        private readonly StripeOptions options;
 
-        // GET api/values/5
-        [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        public ValuesController(IOptions<StripeOptions>options)
         {
-            return "value";
+            this.options = options.Value ?? throw new ArgumentNullException(nameof(options));
         }
-
-        // POST api/values
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
+      
 
         [HttpGet]
         [ProducesResponseType(200)]
@@ -48,9 +26,9 @@ namespace Stripe.Controllers
         {
             // Set your secret key: remember to change this to your live secret key in production
             // See your keys here: https://dashboard.stripe.com/account/apikeys
-            StripeConfiguration.SetApiKey("sk_test_Px0EX1L0tqD9ZBKHT2HmaFTI");
+            StripeConfiguration.SetApiKey(options.ApiKey);
 
-            var options = new ChargeCreateOptions
+            var chargeCreateOptions = new ChargeCreateOptions
             {
                 Amount = 999,
                 Currency = "usd",
@@ -68,7 +46,7 @@ namespace Stripe.Controllers
             try
             {
                 // Use Stripe's library to make request
-                charge = service.Create(options);
+                charge = service.Create(chargeCreateOptions);
             }
             catch (StripeException e)
             {
